@@ -1,0 +1,142 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "athena-agent"
+version = "0.1.0"
+description = "Self-improving AI research agent for one-person quantitative trading firms"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [
+    { name = "Athena Agent contributors" },
+]
+keywords = [
+    "trading", "quant", "ai-agent", "backtesting", "vectorbt",
+    "backtrader", "research-automation", "self-improving",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Financial and Insurance Industry",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Office/Business :: Financial :: Investment",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+# Core dependencies — installed by `pip install athena-agent`
+dependencies = [
+    "pandas>=2.0",
+    "numpy>=1.24",
+    "requests>=2.28",
+    "pyarrow>=10.0",   # parquet cache
+]
+
+[project.optional-dependencies]
+
+# Crypto via CCXT (no auth)
+crypto = [
+    "ccxt>=4.0",
+]
+
+# Indian + crypto venues
+broker = [
+    "ccxt>=4.0",
+]
+
+# Backtest engines
+research = [
+    "vectorbt>=0.26",
+    "backtrader>=1.9",
+    "scipy>=1.10",     # nicer inverse-normal in deflated Sharpe (optional)
+]
+
+# LLM agent loop (Week 3+)
+agent = [
+    # OpenRouter is hit via plain HTTP, no SDK required, but tiktoken helps
+    # for token counting once the agent loop arrives.
+    "tiktoken>=0.5",
+]
+
+# Development & testing
+dev = [
+    "pytest>=7.4",
+    "pytest-cov>=4.1",
+    "ruff>=0.4",
+    "mypy>=1.5",
+    "pandas-stubs",
+    "types-requests",
+]
+
+# Everything
+all = [
+    "athena-agent[crypto,broker,research,agent]",
+]
+
+[project.urls]
+Homepage = "https://github.com/supriyadevidutta/athena-agent"
+Issues = "https://github.com/supriyadevidutta/athena-agent/issues"
+Changelog = "https://github.com/supriyadevidutta/athena-agent/blob/main/CHANGELOG.md"
+
+[project.scripts]
+# Wired in Week 3
+# athena = "athena.cli:main"
+
+[tool.setuptools]
+packages = { find = { include = ["athena", "athena.*"] } }
+
+[tool.setuptools.package-data]
+athena = ["py.typed"]
+
+# ---------- Tooling --------------------------------------------------------
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["athena/tests"]
+python_files = "test_*.py"
+addopts = [
+    "-v",
+    "--strict-markers",
+    "--tb=short",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # bugbear
+    "UP",  # pyupgrade
+    "C4",  # comprehensions
+]
+ignore = [
+    "E501",  # line length handled by formatter
+    "B008",  # function call in default arg (we use it for Path defaults)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"athena/tests/*" = ["B011"]  # allow `assert` in tests
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = false
+warn_unused_configs = true
+no_implicit_optional = true
+check_untyped_defs = true
+ignore_missing_imports = true
+strict_equality = true
+
+[[tool.mypy.overrides]]
+module = ["ccxt.*", "vectorbt.*", "backtrader.*"]
+ignore_missing_imports = true
